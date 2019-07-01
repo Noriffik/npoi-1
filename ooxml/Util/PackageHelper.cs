@@ -99,35 +99,35 @@ namespace NPOI.Util
         PackageRelationshipCollection rels = part.Relationships;
         if(rels != null) 
             foreach (PackageRelationship rel in rels) {
-            PackagePart p;
-            if(rel.TargetMode == TargetMode.External){
-                part_tgt.AddExternalRelationship(rel.TargetUri.ToString(), rel.RelationshipType, rel.Id);
-                //external relations don't have associated namespace parts
-                continue;
-            }
-            Uri uri = rel.TargetUri;
+                PackagePart p;
+                if(rel.TargetMode == TargetMode.External){
+                    part_tgt.AddExternalRelationship(rel.TargetUri.ToString(), rel.RelationshipType, rel.Id);
+                    //external relations don't have associated namespace parts
+                    continue;
+                }
+                Uri uri = rel.TargetUri;
 
-            if(uri.Fragment != null) {
-                part_tgt.AddRelationship(uri, (TargetMode)rel.TargetMode, rel.RelationshipType, rel.Id);
-                continue;
-            }
-            PackagePartName relName = PackagingUriHelper.CreatePartName(rel.TargetUri);
-            p = pkg.GetPart(relName);
-            part_tgt.AddRelationship(p.PartName, (TargetMode)rel.TargetMode, rel.RelationshipType, rel.Id);
-
-
+                if(uri.Fragment != null) {
+                    part_tgt.AddRelationship(uri, (TargetMode)rel.TargetMode, rel.RelationshipType, rel.Id);
+                    continue;
+                }
+                PackagePartName relName = PackagingUriHelper.CreatePartName(rel.TargetUri);
+                p = pkg.GetPart(relName);
+                part_tgt.AddRelationship(p.PartName, (TargetMode)rel.TargetMode, rel.RelationshipType, rel.Id);
 
 
-            PackagePart dest;
-            if(!tgt.ContainPart(p.PartName)){
-                dest = tgt.CreatePart(p.PartName, p.ContentType);
-                Stream out1 = dest.GetOutputStream();
-                IOUtils.Copy(p.GetInputStream(), out1);
-                out1.Close();
-                Copy(pkg, p, tgt, dest);
+
+
+                PackagePart dest;
+                if(!tgt.ContainPart(p.PartName)){
+                    dest = tgt.CreatePart(p.PartName, p.ContentType);
+                    Stream out1 = dest.GetOutputStream();
+                    IOUtils.Copy(p.GetInputStream(), out1);
+                    out1.Close();
+                    Copy(pkg, p, tgt, dest);
+                }
             }
         }
-    }
 
         /**
          * Copy core namespace properties
@@ -151,6 +151,4 @@ namespace NPOI.Util
             tgt.SetVersionProperty(src.GetVersionProperty());
         }
     }
-
-
 }

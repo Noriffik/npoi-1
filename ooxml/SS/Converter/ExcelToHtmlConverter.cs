@@ -15,6 +15,8 @@
    limitations under the License.
 ==================================================================== */
 
+using System.Globalization;
+
 namespace NPOI.SS.Converter
 {
     using System;
@@ -120,13 +122,8 @@ namespace NPOI.SS.Converter
             excelToHtmlConverter.ProcessWorkbook(workbook);
             return excelToHtmlConverter.Document;
         }
-        public XmlDocument Document
-        {
-            get
-            {
-                return htmlDocumentFacade.Document;
-            }
-        }
+        public XmlDocument Document => htmlDocumentFacade.Document;
+
         public void ProcessWorkbook(IWorkbook workbook)
         {
 
@@ -179,8 +176,7 @@ namespace NPOI.SS.Converter
                     continue;
 
                 XmlElement tableRowElement = htmlDocumentFacade.CreateTableRow();
-                htmlDocumentFacade.AddStyleClass(tableRowElement, "r", "height:"
-                        + (row.Height / 20f) + "pt;");
+                htmlDocumentFacade.AddStyleClass(tableRowElement, "r", $"height:{row.Height / 20f}pt;");
 
                 int maxRowColumnNumber = ProcessRow(mergedRanges, row,
                         tableRowElement);
@@ -226,11 +222,12 @@ namespace NPOI.SS.Converter
 
         protected void ProcessDocumentInformation(IWorkbook workbook)
         {
-            if (workbook is NPOI.HSSF.UserModel.HSSFWorkbook)
+            switch (workbook)
             {
-                SummaryInformation summaryInformation = ((HSSFWorkbook)workbook).SummaryInformation;
-                if (summaryInformation != null)
+                case HSSFWorkbook hssfWorkbook:
                 {
+                    SummaryInformation summaryInformation = hssfWorkbook.SummaryInformation;
+                    if (summaryInformation == null) return;
                     if (!string.IsNullOrEmpty(summaryInformation.Title))
                         htmlDocumentFacade.Title = summaryInformation.Title;
 
@@ -242,23 +239,26 @@ namespace NPOI.SS.Converter
 
                     if (!string.IsNullOrEmpty(summaryInformation.Comments))
                         htmlDocumentFacade.AddDescription(summaryInformation.Comments);
+                    break;
                 }
-            }
-            else if(workbook is NPOI.XSSF.UserModel.XSSFWorkbook)
-            {
-                POIXMLProperties props=((NPOI.XSSF.UserModel.XSSFWorkbook)workbook).GetProperties();
-                if (!string.IsNullOrEmpty(props.CoreProperties.Title))
+
+                case XSSFWorkbook xssfWorkbook:
                 {
-                    htmlDocumentFacade.Title = props.CoreProperties.Title;
+                    POIXMLProperties props=xssfWorkbook.GetProperties();
+                    if (!string.IsNullOrEmpty(props.CoreProperties.Title))
+                    {
+                        htmlDocumentFacade.Title = props.CoreProperties.Title;
+                    }
+                    if (!string.IsNullOrEmpty(props.CoreProperties.Creator))
+                        htmlDocumentFacade.AddAuthor(props.CoreProperties.Creator);
+
+                    if (!string.IsNullOrEmpty(props.CoreProperties.Keywords))
+                        htmlDocumentFacade.AddKeywords(props.CoreProperties.Keywords);
+
+                    if (!string.IsNullOrEmpty(props.CoreProperties.Description))
+                        htmlDocumentFacade.AddDescription(props.CoreProperties.Description);
+                    break;
                 }
-                if (!string.IsNullOrEmpty(props.CoreProperties.Creator))
-                    htmlDocumentFacade.AddAuthor(props.CoreProperties.Creator);
-
-                if (!string.IsNullOrEmpty(props.CoreProperties.Keywords))
-                    htmlDocumentFacade.AddKeywords(props.CoreProperties.Keywords);
-
-                if (!string.IsNullOrEmpty(props.CoreProperties.Description))
-                    htmlDocumentFacade.AddDescription(props.CoreProperties.Description);
             }
         }
         /**
@@ -330,14 +330,7 @@ namespace NPOI.SS.Converter
                 }
 
                 bool emptyCell;
-                if (cell != null)
-                {
-                    emptyCell = ProcessCell(cell, tableCellElement, GetColumnWidth(sheet, colIx), divWidthPx, row.Height / 20f);
-                }
-                else
-                {
-                    emptyCell = true;
-                }
+                emptyCell = cell == null || ProcessCell(cell, tableCellElement, GetColumnWidth(sheet, colIx), divWidthPx, row.Height / 20f);
 
                 if (emptyCell)
                 {
@@ -442,8 +435,7 @@ namespace NPOI.SS.Converter
                             value = str.ToString();
                             break;
                         case CellType.Numeric:
-                            ICellStyle style = cell.CellStyle as ICellStyle;
-                            if (style == null)
+                            if (!(cell.CellStyle is ICellStyle style))
                             {
                                 return false;
                             }
@@ -510,7 +502,7 @@ namespace NPOI.SS.Converter
                             ICellStyle style = cellStyle;
                             if (style == null)
                             {
-                                value = cell.NumericCellValue.ToString();
+                                value = cell.NumericCellValue.ToString(CultureInfo.InvariantCulture);
                             }
                             else
                             {

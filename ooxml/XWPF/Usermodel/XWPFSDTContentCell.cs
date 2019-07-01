@@ -38,9 +38,7 @@ namespace NPOI.XWPF.UserModel
         //parent of a cell can be not just a row, but an sdt.
         //For now we are just grabbing the text out of the text tokentypes.
 
-        //private List<ICell> cells = new List<ICell>().
-
-        private String text = "";
+        private String text;
 
         public XWPFSDTContentCell(CT_SdtContentCell sdtContentCell,
                                   XWPFTableRow xwpfTableRow, IBody part)
@@ -97,47 +95,6 @@ namespace NPOI.XWPF.UserModel
                     }
                 }
             }
-            //IEnumerator cursor = sdtContentCell.Items.GetEnumerator();
-            //while (cursor.MoveNext() && depth > 0)
-            //{
-            //    //TokenType t = cursor.ToNextToken();
-            //    object t = cursor.Current;
-            //    if (t is CT_Text)//??
-            //    {
-            //        //sb.Append(cursor.TextValue);
-            //    }
-            //    else if (IsStartToken(cursor, "tr"))
-            //    {
-            //        tcCnt = 0;
-            //        iBodyCnt = 0;
-            //    }
-            //    else if (IsStartToken(cursor, "tc"))
-            //    {
-            //        if (tcCnt++ > 0)
-            //        {
-            //            sb.Append("\t");
-            //        }
-            //        iBodyCnt = 0;
-            //    }
-            //    else if (IsStartToken(cursor, "p") ||
-            //          IsStartToken(cursor, "tbl") ||
-            //          IsStartToken(cursor, "sdt"))
-            //    {
-            //        if (iBodyCnt > 0)
-            //        {
-            //            sb.Append("\n");
-            //        }
-            //        iBodyCnt++;
-            //    }
-            //    //if (cursor.IsStart())
-            //    //{
-            //    //    depth++;
-            //    //}
-            //    //else if (cursor.IsEnd())
-            //    //{
-            //    //    depth--;
-            //    //}
-            //}
             text = sb.ToString();
         }
         private bool IsStartToken(XmlReader cursor, String string1)
@@ -147,37 +104,16 @@ namespace NPOI.XWPF.UserModel
                 return false;
             }
 
-            if (cursor.LocalName == string1)
-            {
-                return true;
-            }
-            return false;
+            return cursor.LocalName == string1;
         }
 
         private bool IsStartToken(object cursor, String string1)
         {
             throw new NotImplementedException();
-            //if (!cursor.IsStart())
-            //{
-            //    return false;
-            //}
-            //QName qName = cursor.Name;
-            //if (qName != null && qName.LocalPart != null &&
-            //        qName.LocalPart.Equals(string1))
-            //{
-            //    return true;
-            //}
-            return false;
         }
 
 
-        public string Text
-        {
-            get
-            {
-                return text;
-            }
-        }
+        public string Text => text;
 
         public override string ToString()
         {

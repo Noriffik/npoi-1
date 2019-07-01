@@ -372,13 +372,7 @@ namespace NPOI.OpenXml4Net.OPC
          * @throws OpenXml4NetException
          * @see org.apache.poi.OpenXml4Net.opc.RelationshipSource#getRelationships()
          */
-        public PackageRelationshipCollection Relationships
-        {
-            get
-            {
-                return GetRelationshipsCore(null);
-            }
-        }
+        public PackageRelationshipCollection Relationships => GetRelationshipsCore(null);
 
         /**
          * Retrieves a package relationship from its id.
@@ -431,11 +425,9 @@ namespace NPOI.OpenXml4Net.OPC
         private PackageRelationshipCollection GetRelationshipsCore(String filter)
         {
             this._container.ThrowExceptionIfWriteOnly();
-            if (_relationships == null)
-            {
-                this.ThrowExceptionIfRelationship();
-                _relationships = new PackageRelationshipCollection(this);
-            }
+            if (_relationships != null) return new PackageRelationshipCollection(_relationships, filter);
+            this.ThrowExceptionIfRelationship();
+            _relationships = new PackageRelationshipCollection(this);
             return new PackageRelationshipCollection(_relationships, filter);
         }
 
@@ -446,13 +438,7 @@ namespace NPOI.OpenXml4Net.OPC
          *         <b>false</b>.
          * @see org.apache.poi.OpenXml4Net.opc.RelationshipSource#hasRelationships()
          */
-        public bool HasRelationships
-        {
-            get
-            {
-                return (!this.IsRelationshipPart && (_relationships != null && _relationships.Size > 0));
-            }
-        }
+        public bool HasRelationships => (!this.IsRelationshipPart && (_relationships != null && _relationships.Size > 0));
 
         /**
          * Checks if the specified relationship is part of this package part.
@@ -491,7 +477,7 @@ namespace NPOI.OpenXml4Net.OPC
             // Ensure this is one of ours
             if (!IsRelationshipExists(rel))
             {
-                throw new ArgumentException("Relationship " + rel + " doesn't start with this part " + _partName);
+                throw new ArgumentException($"Relationship {rel} doesn't start with this part {_partName}");
             }
 
             // Get the target URI, excluding any relative fragments
@@ -503,9 +489,9 @@ namespace NPOI.OpenXml4Net.OPC
                 {
                     target = PackagingUriHelper.ParseUri(t.Substring(0, t.IndexOf('#')), UriKind.Absolute);
                 }
-                catch (UriFormatException e)
+                catch (UriFormatException)
                 {
-                    throw new InvalidFormatException("Invalid target URI: " + t);
+                    throw new InvalidFormatException($"Invalid target URI: {t}");
                 }
             }
 
@@ -514,7 +500,7 @@ namespace NPOI.OpenXml4Net.OPC
             PackagePart part = _container.GetPart(relName);
             if (part == null)
             {
-                throw new ArgumentException("No part found for relationship " + rel);
+                throw new ArgumentException($"No part found for relationship {rel}");
             }
             return part;
         }

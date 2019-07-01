@@ -94,24 +94,7 @@ namespace NPOI.XWPF.UserModel
                 pictTextObjs.Add(pic);
             foreach (CT_Drawing draw in drawingList)
                 pictTextObjs.Add(draw);
-            //foreach (object o in pictTextObjs)
-            //{
-            //todo:: imlement this
-            //XmlObject[] t = o.SelectPath("declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' .//w:t");
-            //for (int m = 0; m < t.Length; m++)
-            //{
-            //    NodeList kids = t[m].DomNode.ChildNodes;
-            //    for (int n = 0; n < kids.Length; n++)
-            //    {
-            //        if (kids.Item(n) is Text)
-            //        {
-            //            if (text.Length > 0)
-            //                text.Append("\n");
-            //            text.Append(kids.Item(n).NodeValue);
-            //        }
-            //    }
-            //}
-            //}
+            
             pictureText = text.ToString();
 
             // Do we have any embedded pictures?
@@ -155,9 +138,8 @@ namespace NPOI.XWPF.UserModel
             //    pictures.Add((NPOI.OpenXmlFormats.Dml.CT_Picture)pict);
             //}
             //}
-            if (o is CT_Drawing)
+            if (o is CT_Drawing drawing)
             {
-                CT_Drawing drawing = o as CT_Drawing;
                 if (drawing.inline != null)
                 {
                     foreach (CT_Inline inline in drawing.inline)
@@ -166,9 +148,9 @@ namespace NPOI.XWPF.UserModel
                     }
                 }
             }
-            else if (o is CT_GraphicalObjectData)
+            else if (o is CT_GraphicalObjectData data)
             {
-                GetPictures(o as CT_GraphicalObjectData, pictures);
+                GetPictures(data, pictures);
             }
             return pictures;
         }
@@ -200,13 +182,8 @@ namespace NPOI.XWPF.UserModel
          * Get the currently referenced paragraph/SDT object
          * @return current parent
          */
-        public IRunBody Parent
-        {
-            get
-            {
-                return parent;
-            }
-        }
+        public IRunBody Parent => parent;
+
         /**
          * Get the currently referenced paragraph, or null if a SDT object
          * @deprecated use {@link XWPFRun#getParent()} instead
@@ -225,26 +202,14 @@ namespace NPOI.XWPF.UserModel
          * @return The {@link XWPFDocument} instance, this run.belongs to, or
          *         <code>null</code> if parent structure (paragraph > document) is not properly Set.
          */
-        public XWPFDocument Document
-        {
-            get
-            {
-                if (parent != null)
-                {
-                    return parent.Document;
-                }
-                return null;
-            }
-        }
+        public XWPFDocument Document => parent?.Document;
 
         /**
          * For isBold, isItalic etc
          */
         private bool IsCTOnOff(CT_OnOff onoff)
         {
-            if (!onoff.IsSetVal())
-                return true;
-            return onoff.val;
+            return !onoff.IsSetVal() || onoff.val;
         }
 
         /**
@@ -301,8 +266,8 @@ namespace NPOI.XWPF.UserModel
                 CT_RPr pr = run.rPr;
                 if (pr.IsSetColor())
                 {
-                    NPOI.OpenXmlFormats.Wordprocessing.CT_Color clr = pr.color;
-                    color = clr.val; //clr.xgetVal().getStringValue();
+                    OpenXmlFormats.Wordprocessing.CT_Color clr = pr.color;
+                    color = clr.val;
                 }
             }
             return color;
@@ -316,7 +281,7 @@ namespace NPOI.XWPF.UserModel
         {
             CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
             NPOI.OpenXmlFormats.Wordprocessing.CT_Color color = pr.IsSetColor() ? pr.color : pr.AddNewColor();
-            color.val = (rgbStr);
+            color.val = rgbStr;
         }
         /**
          * Return the string content of this text run
@@ -331,25 +296,12 @@ namespace NPOI.XWPF.UserModel
         /**
          * Returns text embedded in pictures
          */
-        public String PictureText
-        {
-            get
-            {
-                return pictureText;
-            }
-        }
+        public String PictureText => pictureText;
+
         public void ReplaceText(string oldText, string newText)
         {
             string text = this.Text.Replace(oldText, newText);
             this.SetText(text);
-        }
-        /// <summary>
-        ///Sets the text of this text run
-        /// </summary>
-        /// <param name="value">the literal text which shall be displayed in the document</param>
-        public void SetText(String value)
-        {
-            SetText(value, 0);
         }
 
 
@@ -363,12 +315,12 @@ namespace NPOI.XWPF.UserModel
         /// </summary>
         /// <param name="value">the literal text which shall be displayed in the document</param>
         /// <param name="pos">position in the text array (NB: 0 based)</param>
-        public void SetText(String value, int pos)
+        public void SetText(String value, int pos = 0)
         {
             int length = run.SizeOfTArray();
             if (pos > length) throw new IndexOutOfRangeException("Value too large for the parameter position");
-            CT_Text t = (pos < length && pos >= 0) ? run.GetTArray(pos): run.AddNewT();
-            t.Value = (value);
+            CT_Text t = pos < length && pos >= 0 ? run.GetTArray(pos) : run.AddNewT();
+            t.Value = value;
             preserveSpaces(t);
         }
 
@@ -408,7 +360,7 @@ namespace NPOI.XWPF.UserModel
             get
             {
                 CT_RPr pr = run.rPr;
-                return (pr != null && pr.IsSetU() && pr.u.val != null) ?
+                return (pr != null && pr.IsSetU()) ?
                     EnumConverter.ValueOf<UnderlinePatterns, ST_Underline>(pr.u.val) : UnderlinePatterns.None;
             }
         }
@@ -426,10 +378,9 @@ namespace NPOI.XWPF.UserModel
         {
             List<CT_Text> texts = run.GetTList();
             int endPos = 0;
-            int startPos = 0;
             for (int i = 0; i < texts.Count; i++)
             {
-                startPos = endPos;
+                var startPos = endPos;
                 endPos += texts[i].Value.Length;
                 if (endPos > startIndex)
                 {
@@ -448,7 +399,7 @@ namespace NPOI.XWPF.UserModel
                     object o = run.Items[i];
                     if (o is CT_Text)
                     {
-                        if (!(run.ItemsElementName[i] == RunItemsChoiceType.instrText))
+                        if (run.ItemsElementName[i] != RunItemsChoiceType.instrText)
                         {
                             text.Append(((CT_Text)o).Value);
                         }
@@ -463,14 +414,7 @@ namespace NPOI.XWPF.UserModel
                             {
                                 foreach (CT_FFCheckBox checkBox in ctfldChar.ffData.GetCheckBoxList())
                                 {
-                                    if (checkBox.@default.val == true)
-                                    {
-                                        text.Append("|X|");
-                                    }
-                                    else
-                                    {
-                                        text.Append("|_|");
-                                    }
+                                    text.Append(checkBox.@default.val == true ? "|X|" : "|_|");
                                 }
                             }
                         }
@@ -508,13 +452,13 @@ namespace NPOI.XWPF.UserModel
                     {
                         CT_FtnEdnRef ftn = (CT_FtnEdnRef)o;
                         String footnoteRef = ftn.DomNode.LocalName.Equals("footnoteReference") ?
-                            "[footnoteRef:" + ftn.id + "]" : "[endnoteRef:" + ftn.id + "]";
+                            "[footnoteRef:" + ftn.id + "]" : $"[endnoteRef:{ftn.id}]";
                         text.Append(footnoteRef);
                     }
                 }
 
                 // Any picture text?
-                if (pictureText != null && pictureText.Length > 0)
+                if (!string.IsNullOrEmpty(pictureText))
                 {
                     text.Append("\n").Append(pictureText);
                 }
@@ -537,7 +481,7 @@ namespace NPOI.XWPF.UserModel
         public void SetUnderline(UnderlinePatterns value)
         {
             CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
-            CT_Underline underline = (pr.u == null) ? pr.AddNewU() : pr.u;
+            CT_Underline underline = pr.u ?? pr.AddNewU();
             underline.val = EnumConverter.ValueOf<ST_Underline, UnderlinePatterns>(value);
         }
 
@@ -560,7 +504,7 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff strike = pr.IsSetStrike() ? pr.strike : pr.AddNewStrike();
-                strike.val = value;//(value ? ST_OnOff.True : ST_OnOff.False);
+                strike.val = value;
             }
         }
         /**
@@ -590,15 +534,10 @@ namespace NPOI.XWPF.UserModel
         [Obsolete]
         public bool IsStrike
         {
-            get
-            {
-                return IsStrikeThrough;
-            }
-            set
-            {
-                IsStrikeThrough = value;
-            }
+            get => IsStrikeThrough;
+            set => IsStrikeThrough = value;
         }
+        
         /**
          * Specifies that the contents of this run shall be displayed with a double
          * horizontal line through the center of the line.
@@ -618,7 +557,7 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff dstrike = pr.IsSetDstrike() ? pr.dstrike : pr.AddNewDstrike();
-                dstrike.val = value;//(value ? STOnOff.TRUE : STOnOff.FALSE);
+                dstrike.val = value;
             }
         }
         public bool IsSmallCaps
@@ -634,7 +573,7 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff caps = pr.IsSetSmallCaps() ? pr.smallCaps : pr.AddNewSmallCaps();
-                caps.val = value;//(value ? ST_OnOff.True : ST_OnOff.False);
+                caps.val = value;
             }
         }
 
@@ -651,7 +590,7 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff caps = pr.IsSetCaps() ? pr.caps : pr.AddNewCaps();
-                caps.val = value;//(value ? ST_OnOff.True : ST_OnOff.False);
+                caps.val = value;
             }
         }
 
@@ -668,7 +607,7 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff shadow = pr.IsSetShadow() ? pr.shadow : pr.AddNewShadow();
-                shadow.val = value;//(value ? ST_OnOff.True : ST_OnOff.False);
+                shadow.val = value;
             }
         }
 
@@ -685,7 +624,7 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff imprinted = pr.IsSetImprint() ? pr.imprint : pr.AddNewImprint();
-                imprinted.val = value;//(value ? ST_OnOff.True : ST_OnOff.False);
+                imprinted.val = value;
             }
         }
 
@@ -702,12 +641,9 @@ namespace NPOI.XWPF.UserModel
             {
                 CT_RPr pr = run.IsSetRPr() ? run.rPr : run.AddNewRPr();
                 CT_OnOff emboss = pr.IsSetEmboss() ? pr.emboss : pr.AddNewEmboss();
-                emboss.val = value;//(value ? ST_OnOff.True : ST_OnOff.False);
+                emboss.val = value;
             }
-
         }
-
-
 
         [Obsolete]
         public void SetStrike(bool value)
@@ -786,20 +722,12 @@ namespace NPOI.XWPF.UserModel
          */
         public String FontFamily
         {
-            get
-            {
-                return GetFontFamily(FontCharRange.None);
-            }
-            set
-            {
-                SetFontFamily(value, FontCharRange.None);
-            }
+            get => GetFontFamily(FontCharRange.None);
+            set => SetFontFamily(value, FontCharRange.None);
         }
 
-        public string FontName
-        {
-            get { return FontFamily; }
-        }
+        public string FontName => FontFamily;
+
         /**
          * Gets the font family for the specified font char range.
          * If fcr is null, the font char range "ascii" is used
@@ -1074,65 +1002,68 @@ namespace NPOI.XWPF.UserModel
             //    "</a:graphic>";
             //inline.Set((xml));
 
-            XmlDocument xmlDoc = new XmlDocument();
+            //XmlDocument xmlDoc = new XmlDocument();
             //XmlElement el = xmlDoc.CreateElement("pic", "pic", "http://schemas.openxmlformats.org/drawingml/2006/picture");
 
-            inline.graphic = new CT_GraphicalObject();
-            inline.graphic.graphicData = new CT_GraphicalObjectData();
-            inline.graphic.graphicData.uri = "http://schemas.openxmlformats.org/drawingml/2006/picture";
-
+            inline.graphic = new CT_GraphicalObject
+            {
+                graphicData = new CT_GraphicalObjectData
+                {
+                    uri = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+                }
+            };
 
             // Setup the inline
-            inline.distT = (0);
-            inline.distR = (0);
-            inline.distB = (0);
-            inline.distL = (0);
+            inline.distT = 0;
+            inline.distR = 0;
+            inline.distB = 0;
+            inline.distL = 0;
 
-            NPOI.OpenXmlFormats.Dml.WordProcessing.CT_NonVisualDrawingProps docPr = inline.AddNewDocPr();
+            OpenXmlFormats.Dml.WordProcessing.CT_NonVisualDrawingProps docPr = inline.AddNewDocPr();
             long id = parent.Document.DrawingIdManager.ReserveNew();
-            docPr.id = (uint)(id);
+            docPr.id = (uint)id;
             /* This name is not visible in Word 2010 anywhere. */
-            docPr.name = ("Drawing " + id);
-            docPr.descr = (filename);
+            docPr.name = $"Drawing {id}";
+            docPr.descr = filename;
 
-            NPOI.OpenXmlFormats.Dml.WordProcessing.CT_PositiveSize2D extent = inline.AddNewExtent();
-            extent.cx = (width);
-            extent.cy = (height);
+            OpenXmlFormats.Dml.WordProcessing.CT_PositiveSize2D extent = inline.AddNewExtent();
+            extent.cx = width;
+            extent.cy = height;
 
             // Grab the picture object
             NPOI.OpenXmlFormats.Dml.Picture.CT_Picture pic = new OpenXmlFormats.Dml.Picture.CT_Picture();
 
             // Set it up
-            NPOI.OpenXmlFormats.Dml.Picture.CT_PictureNonVisual nvPicPr = pic.AddNewNvPicPr();
+            OpenXmlFormats.Dml.Picture.CT_PictureNonVisual nvPicPr = pic.AddNewNvPicPr();
 
-            NPOI.OpenXmlFormats.Dml.CT_NonVisualDrawingProps cNvPr = nvPicPr.AddNewCNvPr();
+            OpenXmlFormats.Dml.CT_NonVisualDrawingProps cNvPr = nvPicPr.AddNewCNvPr();
             /* use "0" for the id. See ECM-576, 20.2.2.3 */
-            cNvPr.id = (0);
+            cNvPr.id = 0;
             /* This name is not visible in Word 2010 anywhere */
-            cNvPr.name = ("Picture " + id);
-            cNvPr.descr = (filename);
+            cNvPr.name = $"Picture {id}";
+            cNvPr.descr = filename;
 
             CT_NonVisualPictureProperties cNvPicPr = nvPicPr.AddNewCNvPicPr();
             cNvPicPr.AddNewPicLocks().noChangeAspect = true;
 
             CT_BlipFillProperties blipFill = pic.AddNewBlipFill();
             CT_Blip blip = blipFill.AddNewBlip();
-            blip.embed = (picData.GetPackageRelationship().Id);
+            blip.embed = picData.GetPackageRelationship().Id;
             blipFill.AddNewStretch().AddNewFillRect();
 
             CT_ShapeProperties spPr = pic.AddNewSpPr();
             CT_Transform2D xfrm = spPr.AddNewXfrm();
 
             CT_Point2D off = xfrm.AddNewOff();
-            off.x = (0);
-            off.y = (0);
+            off.x = 0;
+            off.y = 0;
 
-            NPOI.OpenXmlFormats.Dml.CT_PositiveSize2D ext = xfrm.AddNewExt();
-            ext.cx = (width);
-            ext.cy = (height);
+            OpenXmlFormats.Dml.CT_PositiveSize2D ext = xfrm.AddNewExt();
+            ext.cx = width;
+            ext.cy = height;
 
             CT_PresetGeometry2D prstGeom = spPr.AddNewPrstGeom();
-            prstGeom.prst = (ST_ShapeType.rect);
+            prstGeom.prst = ST_ShapeType.rect;
             prstGeom.AddNewAvLst();
 
             using (var ms = new MemoryStream())
@@ -1148,8 +1079,8 @@ namespace NPOI.XWPF.UserModel
             // Finish up
             XWPFPicture xwpfPicture = new XWPFPicture(pic, this);
             pictures.Add(xwpfPicture);
+            
             return xwpfPicture;
-
         }
 
         /**
@@ -1161,7 +1092,6 @@ namespace NPOI.XWPF.UserModel
         {
             return pictures;
         }
-
 
         /**
          * Add the xml:spaces="preserve" attribute if the string has leading or trailing white spaces
@@ -1190,5 +1120,4 @@ namespace NPOI.XWPF.UserModel
             return Text;
         }
     }
-
 }

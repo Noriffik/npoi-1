@@ -111,16 +111,16 @@ namespace NPOI.SS.UserModel
             {
                 throw new FileNotFoundException(file);
             }
-            FileStream fStream = null;
+
             try
             {
-                using (fStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                using (var fStream = new FileStream(file, FileMode.Open, FileAccess.Read))
                 {
                     IWorkbook wb = new HSSFWorkbook(fStream);
                     return wb;
                 }
             }
-            catch (OfficeXmlFileException e)
+            catch (OfficeXmlFileException)
             {
                 // opening as .xls failed => try opening as .xlsx
                 OPCPackage pkg = OPCPackage.Open(file);
@@ -132,19 +132,16 @@ namespace NPOI.SS.UserModel
                 {
                     // ensure that file handles are closed (use revert() to not re-write the file)
                     pkg.Revert();
-                    //pkg.close();
 
                     // rethrow exception
-                    throw ioe;
+                    throw new Exception(ioe.Message);
                 }
-                catch (ArgumentException ioe)
+                catch (ArgumentException ae)
                 {
                     // ensure that file handles are closed (use revert() to not re-write the file) 
                     pkg.Revert();
-                    //pkg.close();
-
                     // rethrow exception
-                    throw ioe;
+                    throw new Exception(ae.Message);
                 }
             }
         }
@@ -171,10 +168,8 @@ namespace NPOI.SS.UserModel
             {
                 return new HSSFFormulaEvaluator(workbook as HSSFWorkbook);
             }
-            else
-            {
-                return new XSSFFormulaEvaluator(workbook as XSSFWorkbook);
-            }
+            
+            return new XSSFFormulaEvaluator(workbook as XSSFWorkbook);
         }
 
         /// <summary>
@@ -182,7 +177,7 @@ namespace NPOI.SS.UserModel
         /// Works only for XSSF. For HSSF workbooks this option is ignored.
         /// </summary>
         /// <param name="importOption">Customize the elements that are processed on the next import</param>
-        public static void SetImportOption(ImportOption importOption)
+        private static void SetImportOption(ImportOption importOption)
         {
             if (ImportOption.SheetContentOnly == importOption)
             {
@@ -294,7 +289,5 @@ namespace NPOI.SS.UserModel
                 XSSFRelation.AddRelation(XSSFRelation.PRINTER_SETTINGS);
             }
         }
-
     }
-
 }
