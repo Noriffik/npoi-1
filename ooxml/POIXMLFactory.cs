@@ -15,10 +15,9 @@
    limitations under the License.
 ==================================================================== */
 using NPOI.OpenXml4Net.OPC;
+
 namespace NPOI
 {
-
-
     /**
      * Defines a factory API that enables sub-classes to create instances of <code>POIXMLDocumentPart</code>
      *
@@ -47,8 +46,6 @@ namespace NPOI
          */
         public abstract POIXMLDocumentPart CreateDocumentPart(POIXMLRelation descriptor);
     }
-
-
 }
 
 

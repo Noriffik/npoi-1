@@ -278,24 +278,12 @@ namespace NPOI
             return text.ToString();
         }
 
-        public override String Text
-        {
-            get
-            {
-                return
-                    GetCorePropertiesText() +
-                    GetExtendedPropertiesText() +
-                    GetCustomPropertiesText();
-            }
-        }
+        public override String Text =>
+            GetCorePropertiesText() +
+            GetExtendedPropertiesText() +
+            GetCustomPropertiesText();
 
-        public override POITextExtractor MetadataTextExtractor
-        {
-            get
-            {
-                throw new InvalidOperationException("You already have the Metadata Text Extractor, not recursing!");
-            }
-        }
+        public override POITextExtractor MetadataTextExtractor => throw new InvalidOperationException("You already have the Metadata Text Extractor, not recursing!");
     }
 
 

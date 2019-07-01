@@ -80,6 +80,7 @@ namespace NPOI.Util
             {
                 throw new ArgumentException("Value for parameter 'id' was out of bounds");
             }
+
             VerifyIdentifiersLeft();
 
             if (id == upperbound)
@@ -93,8 +94,10 @@ namespace NPOI.Util
                     {
                         segments.RemoveAt(lastid);
                     }
+
                     return id;
                 }
+
                 return ReserveNew();
             }
 
@@ -108,48 +111,51 @@ namespace NPOI.Util
                     {
                         segments.RemoveAt(0);
                     }
+
                     return id;
                 }
+
                 return ReserveNew();
             }
 
-            
+
             for (int i = 0; i < segments.Count; i++)
-            { 
-                    Segment segment = segments[i];
-                    if (segment.end < id)
-                    {
-                        continue;
-                    }
-                    else if (segment.start > id)
-                    {
-                        break;
-                    }
-                    else if (segment.start == id)
-                    {
-                        segment.start = id + 1;
-                        if (segment.end < segment.start)
-                        {
-                            segments.Remove(segment);
-                        }
-                        return id;
-                    }
-                    else if (segment.end == id)
-                    {
-                        segment.end = id - 1;
-                        if (segment.start > segment.end)
-                        {
-                            segments.Remove(segment);
-                        }
-                        return id;
-                    }
-                    else
-                    {
-                        segments.Add(new Segment(id + 1, segment.end));
-                        segment.end = id - 1;
-                        return id;
-                    }
+            {
+                Segment segment = segments[i];
+                if (segment.end < id)
+                {
+                    continue;
                 }
+                if (segment.start > id)
+                {
+                    break;
+                }
+                if (segment.start == id)
+                {
+                    segment.start = id + 1;
+                    if (segment.end < segment.start)
+                    {
+                        segments.Remove(segment);
+                    }
+
+                    return id;
+                }
+                if (segment.end == id)
+                {
+                    segment.end = id - 1;
+                    if (segment.start > segment.end)
+                    {
+                        segments.Remove(segment);
+                    }
+
+                    return id;
+                }
+
+                segments.Add(new Segment(id + 1, segment.end));
+                segment.end = id - 1;
+                return id;
+            }
+
             return ReserveNew();
         }
 
@@ -193,15 +199,13 @@ namespace NPOI.Util
                     lastSegment.end = upperbound;
                     return true;
                 }
-                else if (lastSegment.end == upperbound)
+                if (lastSegment.end == upperbound)
                 {
                     return false;
                 }
-                else
-                {
-                    segments.Add(new Segment(upperbound, upperbound));
-                    return true;
-                }
+
+                segments.Add(new Segment(upperbound, upperbound));
+                return true;
             }
 
             if (id == lowerbound)
@@ -212,15 +216,13 @@ namespace NPOI.Util
                     firstSegment.start = lowerbound;
                     return true;
                 }
-                else if (firstSegment.start == lowerbound)
+                if (firstSegment.start == lowerbound)
                 {
                     return false;
                 }
-                else
-                {
-                    segments.Insert(0,new Segment(lowerbound, lowerbound));
-                    return true;
-                }
+
+                segments.Insert(0,new Segment(lowerbound, lowerbound));
+                return true;
             }
 
             long higher = id + 1;
@@ -284,7 +286,7 @@ namespace NPOI.Util
          */
         private void VerifyIdentifiersLeft()
         {
-            if (segments.Count==0)
+            if (segments.Count == 0)
             {
                 throw new InvalidOperationException("No identifiers left");
             }
@@ -309,7 +311,7 @@ namespace NPOI.Util
              */
             public override String ToString()
             {
-                return "[" + start + "; " + end + "]";
+                return $"[{start}; {end}]";
             }
         }
     }

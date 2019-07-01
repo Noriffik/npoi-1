@@ -585,35 +585,17 @@ namespace NPOI
         /**
          * Returns the core document properties
          */
-        public CoreProperties CoreProperties
-        {
-            get
-            {
-                return core;
-            }
-        }
+        public CoreProperties CoreProperties => core;
 
         /**
          * Returns the extended document properties
          */
-        public ExtendedProperties ExtendedProperties
-        {
-            get
-            {
-                return ext;
-            }
-        }
+        public ExtendedProperties ExtendedProperties => ext;
 
         /**
          * Returns the custom document properties
          */
-        public CustomProperties CustomProperties
-        {
-            get
-            {
-                return cust;
-            }
-        }
+        public CustomProperties CustomProperties => cust;
 
         /**
          * Commit Changes to the underlying OPC namespace
@@ -656,17 +638,13 @@ namespace NPOI
                 ext.props.Save(out1);
                 out1.Close();
             }
+            
             if (custPart != null)
             {
                 Stream out1 = custPart.GetOutputStream();
                 cust.props.Save(out1);
                 out1.Close();
             }
-
-
         }
-
-
     }
-
 }

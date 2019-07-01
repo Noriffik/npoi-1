@@ -67,21 +67,9 @@ namespace NPOI
             }
         }
 
-        public OPCPackage Package
-        {
-            get
-            {
-                return this.pkg;
-            }
-        }
+        public OPCPackage Package => this.pkg;
 
-        protected PackagePart CorePart
-        {
-            get
-            {
-                return GetPackagePart();
-            }
-        }
+        protected PackagePart CorePart => GetPackagePart();
 
         /**
          * Retrieves all the PackageParts which are defined as
@@ -131,12 +119,10 @@ namespace NPOI
             }
 
             // Did it match the ooxml zip signature?
-            return (
-                    header[0] == POIFSConstants.OOXML_FILE_HEADER[0] &&
-                    header[1] == POIFSConstants.OOXML_FILE_HEADER[1] &&
-                    header[2] == POIFSConstants.OOXML_FILE_HEADER[2] &&
-                    header[3] == POIFSConstants.OOXML_FILE_HEADER[3]
-            );
+            return header[0] == POIFSConstants.OOXML_FILE_HEADER[0] &&
+                   header[1] == POIFSConstants.OOXML_FILE_HEADER[1] &&
+                   header[2] == POIFSConstants.OOXML_FILE_HEADER[2] &&
+                   header[3] == POIFSConstants.OOXML_FILE_HEADER[3];
         }
 
         /**
@@ -145,16 +131,14 @@ namespace NPOI
          */
         public POIXMLProperties GetProperties()
         {
-            if (properties == null)
+            if (properties != null) return properties;
+            try
             {
-                try
-                {
-                    properties = new POIXMLProperties(pkg);
-                }
-                catch (Exception e)
-                {
-                    throw new POIXMLException(e);
-                }
+                properties = new POIXMLProperties(pkg);
+            }
+            catch (Exception e)
+            {
+                throw new POIXMLException(e);
             }
             return properties;
         }

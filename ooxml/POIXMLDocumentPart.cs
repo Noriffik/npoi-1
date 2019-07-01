@@ -140,22 +140,15 @@ using System.Xml;
             if (cores.Size != 1)
             {
                 throw new InvalidOperationException(
-                    "Tried to rebase using " + PackageRelationshipTypes.CORE_DOCUMENT +
-                    " but found " + cores.Size + " parts of the right type"
+                    $"Tried to rebase using {PackageRelationshipTypes.CORE_DOCUMENT} but found {cores.Size} parts of the right type"
                 );
             }
             packageRel = cores.GetRelationship(0);
             packagePart = packagePart.GetRelatedPart(packageRel);
         }
         static XmlNamespaceManager nsm = null;
-        public static XmlNamespaceManager NamespaceManager
-        {
-            get {
-                if (nsm == null)
-                    nsm = CreateDefaultNSM();
-                return nsm;
-            }
-        }
+        public static XmlNamespaceManager NamespaceManager => nsm ?? (nsm = CreateDefaultNSM());
+
         internal static XmlNamespaceManager CreateDefaultNSM()
         {
             //  Create a NamespaceManager to handle the default namespace, 
@@ -241,9 +234,7 @@ using System.Xml;
          */
         public POIXMLDocumentPart GetRelationById(String id)
         {
-            if (string.IsNullOrEmpty(id))
-                return null;
-            return relations[id];
+            return string.IsNullOrEmpty(id) ? null : relations[id];
         }
 
         /**
